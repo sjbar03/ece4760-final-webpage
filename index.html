@@ -29,7 +29,8 @@
 						<ul>
 							<li><a href="#intro" class="active">Introduction</a></li>
 							<li><a href="#hld">High Level Design</a></li>
-							<li><a href="#design">Program/HW Design</a></li>
+							<li><a href="#hwdesign">Hardware Design</a></li>
+							<li><a href="#swdesign">Program Design</a></li>
 							<li><a href="#results">Results</a></li>
 							<li><a href="#conclusions">Conclusions</a></li>
 							<li><a href="#appendix">Appendix</a></li>
@@ -64,14 +65,60 @@
 							</section>
 
 						<!-- Hardware Design -->
-							<section id="design" class="main">
-								<h2>High-Level Design</h2>
+							<section id="hwdesign" class="main">
+								<h2>Hardware Design</h2>
 								<p> <!-- BODY TEXT FOR HW DESIGN -->
 									<figure style="text-align: center;">
 										<img src="images/full-solderboard.jpg" alt="hardware-diagram" style="max-width: 100%; height: auto;" />
 										<figcaption>Figure #: Full solderboard assembly showing all components</figcaption>
 									</figure>
-									Hello
+									
+									Our robot's circuit is built onto one solderboard - containing our motor circuit and Pico-W controller. The above figure 
+									shows the final breadboard with labels indicating wires to off-board components (motors, imu, etc.). Below is a listing of connections
+									made from the Pico-W to the rest of the circuit, as well as a circuit diagram for the motor drivers.
+								</p>
+
+								<figure style="text-align: center;">
+									<div style="border:1px solid #ddd; padding: 0.5em; border-radius: 0.5em; background-color: #f9f9f9; text-align: left;">
+										<ul>
+											<li>Pin 3: 6 Volt COM</li>
+											<li>Pin 6: 4N35-0 1 (Anode) </li>
+											<li>Pin 7: 4N35-1 1 (Anode) </li>
+											<li>Pin 11: MPU-6050 SDA </li>
+											<li>Pin 12: MPU-6050 SCL </li>
+											<li>Pin 36: MPU-6050 3.3V</li>
+											<li>Pin 39: 5V (through diode)</li>
+										</ul>
+									</div>
+									<figcaption>Figure #: Pico-W Connection Listing</figcaption>
+								</figure>
+
+								<figure style="text-align: center;">
+									<img src="images/final-circuit.png" alt="hardware-diagram" style="max-width: 100%; height: auto;" />
+									<figcaption>Figure #: Motor driver/H-Bridge circuit adapted for two motors.</figcaption>
+								</figure>
+
+								Our motor circuit was adapted from the <a href="https://vanhunteradams.com/Pico/ReactionWheel/HBridgeCircuit.html">Inverted Pendulum Lab</a>
+								that has been offered in previous semesters of ECE4760 with Hunter Adams. Our changes include adding a second H-Bridge to drive our second motor.
+								<br>
+								We have two PWM channels coming from the Pico-W (discussed in software design) that are optically isolated from our noisy motor circuit using two 4N35 optocouplers.
+								One PWM signal drives input A of both L9110 H-Bridges, and the other drives input B. The L9110s that we chose were convenient because they included hardware
+								safeguards that prevent shorting power to ground in the case that both inputs are high - although our software ensures that this never happens (discussed 
+								later). When we enable PWM0, the H-Bridge allows IA through - sending current through our motors from IA to IB. When we enable PWM1, the H-Bridge allows IB 
+								through, sending current through our motors from IB to IA. This enables forward and backwards movement, essential for keeping our bi-ped standing up.
+								<br>
+								Concerning power - our entire robot runs off one 6V 4-AA battery pack. Our motors are rated for 12V, but they recieved enough power from this pack to keep our
+								robot upright. Running these motors at half power also allowed the batteries to last longer (lower current draw, around 550 mA including the Pico-W). To power
+								the Pico-W we use one 1N diode for a small voltage drop to around 5.5V, which was safe for powering it via the VSYS pin. This diode also protected the Pico-W
+								from trying to source current to the motors running off the same battery pack.
+
+							</section>
+
+						<!-- Software Design -->
+							<section id="swdesign" class="main">
+								<h2>Software Design</h2>
+								<p> <!-- BODY TEXT FOR HIGH LEVEL DESIGN -->
+									blah blah blah
 								</p>
 							</section>
 														
