@@ -11,6 +11,10 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script>
+			window.MathJax = { tex: { inlineMath: [['\\(','\\)'], ['$', '$']] } };
+		</script>
+		<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 	</head>
 	<body class="is-preload">
 
@@ -93,33 +97,110 @@
 									<figcaption>Figure #: Pico-W Connection Listing</figcaption>
 								</figure>
 
+
 								<figure style="text-align: center;">
 									<img src="images/final-circuit.png" alt="hardware-diagram" style="max-width: 100%; height: auto;" />
 									<figcaption>Figure #: Motor driver/H-Bridge circuit adapted for two motors.</figcaption>
 								</figure>
-
-								Our motor circuit was adapted from the <a href="https://vanhunteradams.com/Pico/ReactionWheel/HBridgeCircuit.html">Inverted Pendulum Lab</a>
-								that has been offered in previous semesters of ECE4760 with Hunter Adams. Our changes include adding a second H-Bridge to drive our second motor.
-								<br>
-								We have two PWM channels coming from the Pico-W (discussed in software design) that are optically isolated from our noisy motor circuit using two 4N35 optocouplers.
-								One PWM signal drives input A of both L9110 H-Bridges, and the other drives input B. The L9110s that we chose were convenient because they included hardware
-								safeguards that prevent shorting power to ground in the case that both inputs are high - although our software ensures that this never happens (discussed 
-								later). When we enable PWM0, the H-Bridge allows IA through - sending current through our motors from IA to IB. When we enable PWM1, the H-Bridge allows IB 
-								through, sending current through our motors from IB to IA. This enables forward and backwards movement, essential for keeping our bi-ped standing up.
-								<br>
-								Concerning power - our entire robot runs off one 6V 4-AA battery pack. Our motors are rated for 12V, but they recieved enough power from this pack to keep our
-								robot upright. Running these motors at half power also allowed the batteries to last longer (lower current draw, around 550 mA including the Pico-W). To power
-								the Pico-W we use one 1N diode for a small voltage drop to around 5.5V, which was safe for powering it via the VSYS pin. This diode also protected the Pico-W
-								from trying to source current to the motors running off the same battery pack.
-
+								<p>
+									Our motor circuit was adapted from the <a href="https://vanhunteradams.com/Pico/ReactionWheel/HBridgeCircuit.html">Inverted Pendulum Lab</a>
+									that has been offered in previous semesters of ECE4760 with Hunter Adams. Our changes include adding a second H-Bridge to drive our second motor.
+									<br>
+									We have two PWM channels coming from the Pico-W (discussed in software design) that are optically isolated from our noisy motor circuit using two 4N35 optocouplers.
+									One PWM signal drives input A of both L9110 H-Bridges, and the other drives input B. The L9110s that we chose were convenient because they included hardware
+									safeguards that prevent shorting power to ground in the case that both inputs are high - although our software ensures that this never happens (discussed 
+									later). When we enable PWM0, the H-Bridge allows IA through - sending current through our motors from IA to IB. When we enable PWM1, the H-Bridge allows IB 
+									through, sending current through our motors from IB to IA. This enables forward and backwards movement, essential for keeping our bi-ped standing up.
+									<br>
+									Concerning power - our entire robot runs off one 6V 4-AA battery pack. Our motors are rated for 12V, but they recieved enough power from this pack to keep our
+									robot upright. Running these motors at half power also allowed the batteries to last longer (lower current draw, around 550 mA including the Pico-W). To power
+									the Pico-W we use one 1N diode for a small voltage drop to around 5.5V, which was safe for powering it via the VSYS pin. This diode also protected the Pico-W
+									from trying to source current to the motors running off the same battery pack.
+								</p>
 							</section>
 
 						<!-- Software Design -->
 							<section id="swdesign" class="main">
 								<h2>Software Design</h2>
 								<p> <!-- BODY TEXT FOR HIGH LEVEL DESIGN -->
-									blah blah blah
+									The onboard software of this robot is comprised of two parallel threads of execution (using both cores on the Pico-W), as well as several <a href=https://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html>"protothreads"</a> responsible
+									for scheduling various tasks on each core. Below is a general overview of the responsibilities of each core, as well as a listing and description of each thread running
+									on that core. Note that our TCP server was adapted from a project originally by Professor Bruce Land for the RP2350 which is documented <a href="https://people.ece.cornell.edu/land/courses/ece4760/pi_pico/wifi_ap_web_server/index_access_pt_rp2350.html">here.</a>
+									Our changes include developing two new web pages to display, and recieving HTTP requests from a Pico-W client. 
 								</p>
+								<figure style="text-align: center;">
+									<div style="border:1px solid #ddd; padding: 0.5em; border-radius: 0.5em; background-color: #f9f9f9; text-align: left;">
+										Core 0: Handles networking and debugging information.
+										<ul>
+											<li>DHCP Server (non-protothread): Initializes a DHCP server listening on Core 0 for any incoming DHCP requests and responding appropriately. </li>
+											<li>DNS Server (non-protothread): Initializes a DNS server listening on Core 0 for handling DNS traffic to our mini-server. </li>
+											<li>TCP Server (non-protothread): Initializes a TCP server listening on Core 0 for handling HTTP GET requests and sending replies.</li>
+											<li>Serial Protothread: Thread handling printing debug information to the serial output, used extensively during development.  </li>
+										</ul>
+										Core 1: Handles high-precision, high-bandwidth PID calculations.
+										<ul>
+											<li>PID ISR: runs whenever our PWM channels wrap ( approximately every 0.83ms ) reading sensors and computing our error function.</li>
+										</ul>
+									</div>
+									<figcaption>Figure #: Onboard Software Listing</figcaption>
+								</figure>
+
+								<h3>PID Control</h3>
+								<p>
+									PID control is the heart of every self balancing robot. Core 1 of our onboard Pico handles the PID. Our ISR triggers at a target speed of 1.2kHz, giving us enough time to detect and respond to the angle changes of the robot.
+									Our <code>on_pwm_wrap</code> function reads raw data from our accelerometer and gyroscope, approximates the devices actual angle via a <a href="https://vanhunteradams.com/Pico/ReactionWheel/Complementary_Filters.html">complementary filter</a> (discussed later), then executes the <code>pid_step</code>
+									function that handles error computation and control response. Our PID function runs at a constant rate, aligned with our angle sampling and
+									PWM wrap. We use hardware interrupts to ensure that our controller executes at a consistent
+									rate, since the integral and derivative components depend on a fixed time constant τ.
+								</p>
+								<figure style="text-align: center;">
+									<p>
+										\( C = \mathrm{clamp}\!\left((K_p \cdot e) + (K_i \cdot \Sigma e) + (K_d \cdot \Delta e),\ \min,\ \max\right) \)
+									</p>
+									<figcaption>Figure #: PID Control (C) general equation.</figcaption>
+								</figure>
+
+								<p>
+									On every loop iteration, we compute the error, update our accumulated error, and sample
+									the gyroscope for ∆θ. We then compute our control output according to the above equation.
+									<br>
+									One of the most crucial parts of our PID implementation is a symmetric range for our control value around 0. This allows our controller to produce positive and negative control values, which we can interpret as forwards/backwards drive based on the sign of the value. This logic is handled in
+									<code>pid_step</code> function. This symmetric range introduced some "friction" at duty cycles in the range of roughly (-1000, 1000) that were too small to actually spin our motors. This caused increased wind-up time and slower responses overall. We overcame this by applying a +1000 unit offset
+									to our duty cycle as we set the PWM Channel output, then capping the PID at our maximum duty cycle minus 1000 (in our case, 4000). This clamps our duty cycle outside of this range, significantly increasing reaction speeds.
+									<br>
+									Another obstacle that we encountered with our dual-motor setup was differences in the reaction properties of our motors when rotating them forwards versus backwards. We found that one direction was considerably less reactive, causing our robot to favor falling towards that side even when optimally tuned.
+									We resolved this issue by running a secondary P,I, and D calculation with smaller gains that could be used to offset the output duty cycle for the less favorable direction. This worked well, and resulted in us achieving the stability demonstrated in our demo video.
+								</p>
+
+								<h3>Complementary Filter</h3>
+								<p>
+									We utilize a complementary filter to estimate the robot's orientation using both acelerometer and gyroscope data. The gyroscope produces a clean signal that measures the
+									rate of change in orientation but accumulates drift over time. The accelerometer measures
+									the absolute orientation relative to Earth’s gravity but introduces substantial high-frequency
+									noise.
+									To combine the strengths of both sensors, we high-pass filter the gyroscope data (removing long-term drift) and low-pass filter the accelerometer data (removing high-frequency
+									noise). The resulting estimate provides both accuracy and responsiveness.
+									This is implemented by weighting the gyroscope estimate heavily (0.999) and the accelerometer estimate lightly (0.001):
+								</p>
+
+								<figure style="text-align: center;">
+									<p>
+										\( \theta_{\text{filtered}} =
+										0.999\,(\theta_{\text{prev}} + \Delta\theta_{\text{gyro}})
+										+ 0.001\,(\theta_{\text{accel}}) \)
+									</p>
+									<figcaption>Figure #: Complementary Filter general equation.</figcaption>
+								</figure>
+
+								<p>
+									The below block diagram illustrates the actual filtering process, including all inputs and outputs to the filter.
+								</p>
+
+								<figure style="text-align: center;">
+									<img src="images/complementary_filter.png" alt="complementary-filter" style="max-width: 100%; height: auto;" />
+									<figcaption>Figure #: Block diagram for the complementary filter implemented by our program. From <a href="https://vanhunteradams.com/Pico/ReactionWheel/Complementary_Filters.html">Adams, Complementary Filters</a> </figcaption>
+								</figure>
+
 							</section>
 														
 						<!-- Results -->
