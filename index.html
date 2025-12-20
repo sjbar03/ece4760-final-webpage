@@ -211,7 +211,21 @@
 								height selection and PID control, our motors would be capable of stabilizing a 3 lb robot. This
 								was ultimately confirmed through experimental testing.
 							</p>
+							<h3>Logical System Structure</h3>
 
+							<p>
+							  From a system-level perspective, the robot is organized as a closed-loop feedback system. Sensor
+							  data from the IMU is continuously sampled and filtered to estimate the robot’s orientation. This
+							  estimate is passed to the PID controller, which computes a corrective control signal. That signal
+							  is then translated into PWM commands that drive the motors, completing the feedback loop.
+							</p>
+							
+							<p>
+							  This logical structure influenced both the hardware and software design. Mechanically, we aimed
+							  to create a symmetric, predictable platform so that the control assumptions would hold. In
+							  software, we prioritized deterministic timing and consistent sampling rates to ensure stable
+							  controller behavior.
+							</p>
 							<h3>Effect of Robot Height on Stability</h3>
 
 							<p>
@@ -2187,3 +2201,4 @@ int main() {
 		<script src="assets/js/main.js"></script>
 	</body>
 </html>
+
