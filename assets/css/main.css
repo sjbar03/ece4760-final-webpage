@@ -267,6 +267,119 @@ input, select, textarea {
 		padding: 0.25em 0.65em;
 	}
 
+/* --- Nicer code dropdown --- */
+
+
+
+
+.code-dropdown {
+	margin-top: 1rem;
+	border-radius: 0.9rem;
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	background: white;
+	overflow: hidden;
+	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+.code-dropdown summary {
+	cursor: pointer;
+	padding: 0.95rem 1.05rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	user-select: none;
+	list-style: none;
+	-webkit-tap-highlight-color: transparent;
+	background: white
+	
+}
+
+.code-dropdown summary::-webkit-details-marker {
+	display: none;
+}
+
+.code-dropdown summary:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.code-dropdown summary:focus-visible {
+	outline: 2px solid rgba(255, 255, 255, 0.35);
+	outline-offset: 2px;
+}
+
+.code-summary .code-left {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-width: 0;
+}
+
+.code-hint {
+	opacity: 0.8;
+	font-size: 0.92em;
+	white-space: nowrap;
+}
+
+/* Chevron icon that rotates */
+.code-chevron {
+	width: 2.1rem;
+	height: 2.1rem;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	background: rgba(0, 0, 0, 0.12);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+}
+.code-chevron::before {
+	content: "";
+	display: block;
+	width: 0.55rem;
+	height: 0.55rem;
+	border-right: 2px solid rgba(255, 255, 255, 0.75);
+	border-bottom: 2px solid rgba(255, 255, 255, 0.75);
+	transform: rotate(-45deg); /* points right */
+	transition: transform 160ms ease;
+	margin-left: -0.1rem;
+}
+
+.code-dropdown[open] summary {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.code-dropdown[open] .code-chevron::before {
+	transform: rotate(45deg); /* points down */
+	margin-left: 0;
+}
+
+/* Hint text swap without JS */
+.code-dropdown[open] .code-hint {
+	opacity: 0.75;
+}
+.code-dropdown[open] .code-hint::before {
+	content: "Click to collapse";
+}
+.code-dropdown .code-hint::before {
+	content: "Click to expand";
+}
+
+/* Code block styling */
+.code-block {
+	margin: 0;
+	padding: 1rem 1.05rem;
+	overflow: auto;
+	background: white;
+	border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.code-block code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Courier New", monospace;
+	font-size: 0.92em;
+	line-height: 1.45;
+}
+
+
 	pre {
 		-webkit-overflow-scrolling: touch;
 		font-family: "Courier New", monospace;
@@ -324,7 +437,7 @@ input, select, textarea {
 	}
 
 	code {
-		background: rgba(255, 255, 255, 0.075);
+		background: white;
 		border-color: rgba(255, 255, 255, 0.35);
 	}
 
