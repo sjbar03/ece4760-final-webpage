@@ -54,48 +54,55 @@
 		  <h2>Introduction</h2>
 		</header>
   
-		<!-- Left-aligned intro text -->
 		<div class="intro-text">
-		  <p>
-			For our ECE 4760 final project, we built a two-wheeled self-balancing robot that can keep itself
-			upright using real-time feedback control. At its core, the robot behaves like an inverted
-			pendulum, so when it starts to tip, it senses the motion and drives its wheels to bring itself back
-			into balance.
-		  </p>
-  
-		  <p>
-			This project was a chance for us to bring together many of the ideas we learned throughout
-			ECE 4760 and apply them to a real, physical system. A lot of our design was inspired by
-			earlier labs and lecture material, especially the old inverted pendulum examples discussed
-			in class and on the course website, as well as Lab 3, where we used PID control to stabilize
-			a one-dimensional helicopter. Those exercises gave us intuition for how feedback control
-			behaves in practice and directly shaped how we approached this project.
-		  </p>
-  
-		  <p>
-			The robot is controlled by a Raspberry Pi Pico W running a PID controller on the RP2040
-			microcontroller. Using data from an onboard IMU, the controller continuously estimates the
-			robot’s tilt angle and how fast that angle is changing. We combine accelerometer and gyroscope
-			measurements using a complementary filter, another technique we learned in class, to get a
-			stable and responsive angle estimate. Based on this information, the controller computes motor
-			commands at a high rate to keep the robot balanced.
-		  </p>
-  
-		  <p>
-			We also wanted the robot to be interactive rather than just balancing in place. To do this, we
-			built a web-based interface hosted directly on the Pico W, which lets us monitor the robot and
-			adjust parameters in real time. On top of that, we added gesture-based control so a user can
-			influence the robot’s motion to move forward or backwards in regards to the tilt of a device.
-		  </p>
-  
-		  <p>
-			Throughout the project, we went through several design iterations. Decisions about robot height,
-			weight distribution, motor placement, and chassis layout all had noticeable effects on control
-			performance, and testing often forced us to revisit earlier choices. The final robot reflects
-			this iterative process and captures what we think ECE 4760 is really about: combining theory,
-			hardware, and software to build something that actually works in the real world.
-		  </p>
-		</div>
+
+			<!-- Project sound bite -->
+			<p><strong>
+			  For our ECE 4760 final project, we designed and built a two-wheeled, self-balancing robot that uses real-time feedback control
+			  to remain upright while being controlled through a web interface and gesture-based input.
+			</strong></p>
+		  
+			<p>
+			 At its core, the robot behaves like an inverted
+			  pendulum, so when it starts to tip, it senses the motion and drives its wheels to bring itself
+			  back into balance.
+			</p>
+		  
+			<p>
+			  This project gave us the opportunity to bring together many of the ideas we learned throughout
+			  ECE 4760 and apply them to a real, physical system. Much of our approach was inspired by earlier
+			  labs and lecture material, especially the inverted pendulum examples discussed in class and on
+			  the course website, as well as Lab 3, where we used PID control to stabilize a one-dimensional
+			  helicopter. Those exercises gave us intuition for how feedback control behaves in practice and
+			  directly shaped how we approached this design.
+			</p>
+		  
+			<p>
+			  The robot is controlled by a Raspberry Pi Pico W running a PID controller on the RP2040
+			  microcontroller. Using data from an onboard IMU, the controller continuously estimates the
+			  robot’s tilt angle and how fast that angle is changing. We combine accelerometer and gyroscope
+			  measurements using a complementary filter, another technique we learned in class, to produce a
+			  stable and responsive angle estimate. Based on this information, the controller computes motor
+			  commands at a high rate to keep the robot balanced.
+			</p>
+		  
+			<p>
+			  We also wanted the robot to be interactive rather than just balancing in place. To achieve this,
+			  we built a web-based interface hosted directly on the Pico W that allows us to monitor the system
+			  and adjust parameters in real time. In addition, we implemented gesture-based control so a user
+			  can command the robot to move forward or backward based on the tilt of a handheld device.
+			</p>
+		  
+			<p>
+			  Throughout the project, we went through several design iterations. Decisions about robot height,
+			  weight distribution, motor placement, and chassis layout all had noticeable effects on control
+			  performance, and testing often forced us to revisit earlier choices. The final robot reflects
+			  this iterative process and captures what we think ECE 4760 is really about: combining theory,
+			  hardware, and software to build something that actually works in the real world.
+			</p>
+		  
+		  </div>
+		  
   
 		<ul class="actions">
 		  <li>
@@ -117,6 +124,22 @@
 									<header class="major">
 									  <h2>High Level Design</h2>
 									</header>
+									<h3>Project Rationale and Inspiration</h3>
+
+									<p>
+									  The idea for this project came directly from concepts and demonstrations covered throughout
+									  ECE 4760, particularly the inverted pendulum systems discussed in lecture and previous laboratory
+									  exercises. We were interested in building a system that was both mechanically challenging and
+									  control-intensive, where small design decisions would have visible effects on system behavior.
+									</p>
+									
+									<p>
+									  In particular, we drew inspiration from earlier inverted pendulum examples presented in class
+									  and on the course website, as well as from Lab 3, where we implemented PID control to stabilize a
+									  one-dimensional helicopter. That lab helped build intuition for how real-world feedback systems
+									  behave, including the effects of noise, delays, and imperfect actuation. This project allowed us
+									  to extend those ideas into a fully physical, dynamically unstable system.
+									</p>
 							<p>
 							  Our high-level design process began with creating a full 3-D CAD model in Onshape. As a team,
 							  we wanted to fully think through the mechanical structure of the robot before building anything
@@ -136,8 +159,10 @@
 							<figure style="text-align: center;">
 								<img src="images/robotassembly.png" alt="robot-assembly" style="max-width: 50%; height: auto;" />
 
-							  <figcaption>Initial full CAD assembly showing overall robot structure.</figcaption>
-							</figure>
+								<figcaption>
+									Full 3D CAD assembly of the robot, showing overall structure, motor placement, wheel geometry,
+									and relative positioning of major subsystems.
+									</figcaption>							</figure>
 							
 							<ul class="actions">
 								<li>
@@ -150,6 +175,27 @@
 							  </ul>
 						  
 			
+							  <h3>Background Math and Physical Model</h3>
+
+<p>
+  At a high level, our robot can be modeled as an inverted pendulum mounted on a pair of driven
+  wheels. When the robot tilts away from the upright position, gravity produces a torque about the
+  wheel axle that causes the system to fall further unless corrective action is taken.
+</p>
+
+<p>
+  The controller’s goal is to generate wheel acceleration that counteracts this gravitational
+  torque. This relationship depends on several physical parameters, including the mass of the
+  robot, the height of the center of mass, and the wheel radius. These relationships guided our
+  mechanical design decisions and informed our motor selection, wheel size, and chassis height.
+</p>
+
+<p>
+  The control problem is inherently dynamic and time-dependent, which motivated the use of PID
+  control. The proportional term responds to instantaneous tilt error, the integral term corrects
+  steady-state bias, and the derivative term provides damping based on angular velocity. These
+  concepts directly build on material covered in lecture and earlier labs.
+</p>
 							<h3>Motor Torque and Weight Constraints</h3>
 						  
 							<p>
@@ -168,16 +214,20 @@
 							  <p>\( \tau = F r \)</p>
 							  <p>\( F = \frac{\tau}{r} \)</p>
 							  <p>\( F_{\text{motor}} = \frac{0.078}{0.05} = 1.56 \text{ N} \)</p>
-							  <figcaption>Figure 1: Torque-to-force relationship at the wheel.</figcaption>
+							  Figure 3: Relationship between motor torque and the horizontal force applied at the wheel–ground interface.
 							</figure>
 						  
 							<p>
-							  Since our robot uses two motors, the total available horizontal force is approximately:
-							</p>
+								<figcaption>
+									Relationship between motor torque and the horizontal force applied at the wheel–ground interface.
+								</figcaption>						
+								</p>
 						  
 							<figure style="text-align: center;">
 							  <p>\( F_{\text{total}} = 2 \times 1.56 = 3.12 \text{ N} \)</p>
-							  <figcaption>Figure 2: Combined force from both motors.</figcaption>
+							  <figcaption>
+								Total horizontal force available from both motors acting together.
+								</figcaption>							
 							</figure>
 						  
 							<p>
@@ -187,7 +237,9 @@
 						  
 							<figure style="text-align: center;">
 							  <p>\( F_g = mg = (1.36)(9.81) \approx 13.3 \text{ N} \)</p>
-							  <figcaption>Figure 3: Gravitational force acting on the robot.</figcaption>
+							  <figcaption>
+								Gravitational force acting on the robot due to its total mass.
+								</figcaption>							
 							</figure>
 						  
 							<p>
@@ -203,7 +255,21 @@
 							  height selection and PID control, our motors would be capable of stabilizing a 3 lb robot. This
 							  was ultimately confirmed through experimental testing.
 							</p>
-						  
+							<h3>Logical System Structure</h3>
+
+							<p>
+							  From a system-level perspective, the robot is organized as a closed-loop feedback system. Sensor
+							  data from the IMU is continuously sampled and filtered to estimate the robot’s orientation. This
+							  estimate is passed to the PID controller, which computes a corrective control signal. That signal
+							  is then translated into PWM commands that drive the motors, completing the feedback loop.
+							</p>
+							
+							<p>
+							  This logical structure influenced both the hardware and software design. Mechanically, we aimed
+							  to create a symmetric, predictable platform so that the control assumptions would hold. In
+							  software, we prioritized deterministic timing and consistent sampling rates to ensure stable
+							  controller behavior.
+							</p>
 							<h3>Effect of Robot Height on Stability</h3>
 						  
 							<p>
@@ -272,21 +338,49 @@
 						  
 							<figure style="text-align: center;">
 								<img src="images/mainframefirst.png" alt="main-frame" style="max-width: 50%; height: auto;" />
-							  <figcaption>Main frame DXF used to mount motors and wheels.</figcaption>
-							</figure>
+								<figcaption>
+									DXF design of the main structural frame used to mount the motors and wheels.
+									</figcaption>							
+								</figure>
 						  
 							<figure style="text-align: center;">
 								<img src="images/mainframetwo.png" alt="support-frame" style="max-width: 50%; height: auto;" />
 
-							  <figcaption>Supporting frame DXF for motor driver circuit, IMU, and battery pack.</figcaption>
-							</figure>
+								<figcaption>
+									DXF design of the supporting frame used to mount the motor driver circuit, IMU, and battery pack.
+									</figcaption>
+																
+								</figure>
 						  
 							<figure style="text-align: center;">
 								<img src="images/connectorcadfinals.png" alt="connector" style="max-width: 50%; height: auto;" />
 
-							  <figcaption>Connector pieces used to attach motors to the main chassis.</figcaption>
-							</figure>
-						  
+								<figcaption>
+									DXF designs of the connector pieces used to attach the motors to the main chassis.
+									</figcaption>
+																
+								</figure>
+							<h3>Hardware and Software Tradeoffs</h3>
+
+							<p>
+							  Many of our design decisions involved tradeoffs between hardware simplicity and software
+							  complexity. For example, achieving perfect mechanical symmetry is difficult in practice, so we
+							  relied on software compensation through PID tuning to handle small imbalances.
+							</p>
+							
+							<p>
+							  Similarly, placing heavier components higher on the robot increased the difficulty of mechanical
+							  stabilization but improved controllability by making tilt errors more pronounced. Rather than
+							  minimizing height purely for stability, we chose a configuration that gave the controller better
+							  authority, accepting the need for careful tuning in software.
+							</p>
+							
+							<p>
+							  On the software side, we prioritized real-time performance and responsiveness over feature
+							  complexity. Running the controller at a high and consistent rate required careful use of
+							  interrupts and timing, but this tradeoff resulted in significantly improved stability.
+							</p>
+							
 <h3>Mechanical Adjustments for Tuning and Testing</h3>
 
 <p>
@@ -300,7 +394,10 @@
 <figure style="text-align: center;">
 	<img src="images/foam.png" alt="foam" style="max-width: 75%; height: auto;" />
 
-  <figcaption>Foam To Protect Robot on Falls.</figcaption>
+	<figcaption>
+		Protective foam added around the edges of the robot to reduce impact during early PID tuning
+		and testing.
+		</figcaption>
 </figure>
 
 <p>
@@ -313,7 +410,11 @@
 <figure style="text-align: center;">
 	<img src="images/adjustments.png" alt="adjustments" style="max-width: 75%; height: auto;" />
 
-  <figcaption>Placement of Hardware Components.</figcaption>
+	<figcaption>
+		Placement of major hardware components, including the battery pack, IMU, and motor driver
+		circuit, across different levels of the chassis.
+		</figcaption>
+		
 </figure>
 <p>
   In practice, mounting everything perfectly centered was harder than we expected. Small offsets
@@ -332,12 +433,111 @@
 <figure style="text-align: center;">
 	<img src="images/balancingcomponents.png" alt="balancingcomponents" style="max-width: 75%; height: auto;" />
 
-  <figcaption>Added Weight for Balance.</figcaption>
-</figure>
+	<figcaption>
+		Additional threaded rods and nuts added to the top level to compensate for small mass
+		imbalances and improve center-of-mass alignment.
+		</figcaption>
+		</figure>
 <p>
   These adjustments reinforced how closely the mechanical design and control performance are
   connected. Many of the improvements we saw during tuning came not just from changing PID gains,
   but from making small, deliberate changes to the physical structure of the robot.
+</p>
+
+<h3>Cost of Project</h3>
+
+<p>
+  One of our design goals was to keep the overall cost of the robot relatively low while still
+  achieving reliable mechanical performance and real-time control. Most components were selected
+  from commonly available parts used throughout ECE 4760 labs, and several items (such as the
+  microcontroller and IMU) were already provided or reused from previous coursework.
+</p>
+
+<table style="width:100%; border-collapse: collapse; margin-top: 1em;">
+  <thead>
+    <tr>
+      <th style="border-bottom: 2px solid #ccc; text-align: left;">Component</th>
+      <th style="border-bottom: 2px solid #ccc; text-align: right;">Cost (USD)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Clear acrylic plexiglass (pack)</td>
+      <td style="text-align: right;">$8</td>
+    </tr>
+    <tr>
+      <td>48:1 DC gearbox motors (2)</td>
+      <td style="text-align: right;">$4</td>
+    </tr>
+    <tr>
+      <td>M5 nuts (24)</td>
+      <td style="text-align: right;">$4</td>
+    </tr>
+    <tr>
+      <td>M5 threaded rods (4)</td>
+      <td style="text-align: right;">$4</td>
+    </tr>
+    <tr>
+      <td>Robot wheels (2)</td>
+      <td style="text-align: right;">$2</td>
+    </tr>
+    <tr>
+      <td>Plastic super glue</td>
+      <td style="text-align: right;">$5</td>
+    </tr>
+    <tr>
+      <td>Raspberry Pi Pico W</td>
+      <td style="text-align: right;">$6</td>
+    </tr>
+    <tr>
+      <td>IMU (MPU-6050)</td>
+      <td style="text-align: right;">$3</td>
+    </tr>
+    <tr>
+      <td>Batteries</td>
+      <td style="text-align: right;">$5</td>
+    </tr>
+    <tr>
+      <td>Battery holder</td>
+      <td style="text-align: right;">$5</td>
+    </tr>
+    <tr>
+      <td>Protective foam</td>
+      <td style="text-align: right;">$1</td>
+    </tr>
+    <tr>
+      <td style="border-top: 2px solid #ccc;"><strong>Total Cost</strong></td>
+      <td style="border-top: 2px solid #ccc; text-align: right;"><strong>$47</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  Overall, the total cost of the robot was approximately <strong>$47</strong>. This demonstrates that
+  a fully functional self-balancing robot with real-time control, wireless interaction, and custom
+  mechanical fabrication can be built at relatively low cost using widely available components.
+</p>
+
+<h3>Intellectual Property Considerations</h3>
+
+<p>
+  This project was developed entirely for educational purposes as part of ECE 4760. While
+  self-balancing robots and inverted pendulum systems are widely studied and used in commercial
+  products, our implementation does not attempt to reproduce or replicate any specific patented
+  design.
+</p>
+
+<p>
+  The mechanical design, control algorithms, and software were developed independently by our
+  team using publicly available course materials, datasheets, and academic resources. Any external
+  code or concepts used were either provided as part of the course infrastructure or adapted from
+  publicly available educational examples with appropriate attribution.
+</p>
+
+<p>
+  To the best of our knowledge, this project does not infringe on any existing patents,
+  copyrights, or trademarks and is intended solely as a demonstration of embedded systems and
+  control principles.
 </p>
 
 						  
@@ -856,3 +1056,4 @@
 
 	</body>
 </html>
+
