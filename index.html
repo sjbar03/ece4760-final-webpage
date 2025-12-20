@@ -35,6 +35,8 @@
 							<li><a href="#hld">High Level Design</a></li>
 							<li><a href="#hwdesign">Hardware Design</a></li>
 							<li><a href="#swdesign">Program Design</a></li>
+							<li><a href="#gesturecontrolhw">Gesture Hardware</a></li>
+							<li><a href="#gesturecontrolsw">Gesture Software</a></li>
 							<li><a href="#results">Results</a></li>
 							<li><a href="#conclusions">Conclusions</a></li>
 							<li><a href="#appendix">Appendix</a></li>
@@ -340,9 +342,6 @@
 
 						  
 						  </section>						  
-						  
-						  
-
 						<!-- Hardware Design -->
 							<section id="hwdesign" class="main">
 								<h2>Hardware Design</h2>
@@ -477,7 +476,317 @@
 								</figure>
 
 							</section>
-														
+						
+							<!-- Gesture Control Hardware -->
+							<section id="gesturecontrolhw" class="main">
+								  <h2>Gesture Hardware Configuration</h2>
+
+								<p>
+									The gesture input device is implemented on a breadboard using a
+									<strong>Raspberry Pi Pico W</strong> and an <strong>MPU6050 Inertial Measurement Unit (IMU)</strong>.
+									The Pico W serves as both the sensing and processing unit, while the MPU6050
+									provides 3-axis accelerometer and gyroscope measurements for gesture recognition.
+								</p>
+
+								<p>
+									The IMU is interfaced to the Pico W using the I<sup>2</sup>C protocol operating at
+									3.3&nbsp;V logic levels. Power and signal connections are made directly between the
+									Pico W and the MPU6050 breakout board.
+								</p>
+
+								<h3>Electrical Connections</h3>
+
+								<table class="hardware-table">
+									<thead>
+									<tr>
+										<th>MPU6050 Pin</th>
+										<th>Pico W Pin</th>
+										<th>Description</th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<td>VCC</td>
+										<td>3.3&nbsp;V</td>
+										<td>Power supply for IMU (3.3&nbsp;V logic)</td>
+									</tr>
+									<tr>
+										<td>GND</td>
+										<td>GND</td>
+										<td>Common electrical ground</td>
+									</tr>
+									<tr>
+										<td>SCL</td>
+										<td>GPIO&nbsp;9 (I<sup>2</sup>C SCL)</td>
+										<td>I<sup>2</sup>C clock line</td>
+									</tr>
+									<tr>
+										<td>SDA</td>
+										<td>GPIO&nbsp;8 (I<sup>2</sup>C SDA)</td>
+										<td>I<sup>2</sup>C data line</td>
+									</tr>
+									</tbody>
+								</table>
+
+								<h3>Physical Layout</h3>
+								<p>
+									The Pico W and MPU6050 are mounted on a solderless breadboard to allow rapid
+									prototyping and iterative development. Short jumper wires are used for the
+									I<sup>2</sup>C lines to minimize noise and signal integrity issues. The shared ground
+									reference ensures stable sensor measurements and reliable communication.
+								</p>
+
+								<p>
+									This hardware configuration allows the Pico W to continuously acquire inertial
+									measurements, perform on-board sensor fusion, and transmit gesture commands
+									wirelessly without the need for external processing hardware.
+								</p>
+
+
+								<figure style="text-align: center;">
+									<img
+									src="images/gesture_control.png"
+									alt="Raspberry Pi Pico W connected to MPU6050 IMU on a breadboard using I2C"
+									style="max-width: 70%; height: auto;"
+									/>
+									<figcaption>
+									Figure 1: Breadboard-based gesture hardware consisting of a Raspberry Pi Pico W
+									interfaced with an MPU6050 IMU over I<sup>2</sup>C.
+									</figcaption>
+								</figure>
+							</section>
+
+						<!-- Gesture Control Software -->
+							<section id="gesturecontrolsw" class="main">
+								 <h2>Gesture Control Software</h2>
+
+									<p>
+										This system implements a <strong>client-side inertial gesture interface</strong> on a Raspberry Pi Pico W.
+										The Pico W acquires raw inertial measurements from an MPU6050 IMU via I2C, performs fixed-point sensor fusion
+										to estimate orientation, discretizes the estimated state into gesture events, and transmits those events to a
+										remote server using HTTP over Wi-Fi. The Pico W acts exclusively as a <strong>network client</strong>,
+										initiating all communication.
+									</p>
+
+									<p>
+										The signal path can be summarized as:
+										<br />
+										<code>IMU → Fixed-Point Sensor Fusion → Gesture State Machine → HTTP Client</code>
+									</p>
+
+									<hr />
+
+									<section id="data-acquisition">
+										<h2>IMU Data Acquisition Layer</h2>
+
+										<h3>Hardware Interface and Configuration</h3>
+										<p>
+										The MPU6050 is interfaced over I2C using the RP2040’s hardware I2C controller. During initialization,
+										the device is configured as follows:
+										</p>
+										<ul>
+										<li>Power management disabled (device wake-up)</li>
+										<li>Accelerometer full-scale range: &plusmn;2 g</li>
+										<li>Gyroscope full-scale range: &plusmn;250 deg/s</li>
+										<li>Sample rate divider configured for 1 kHz internal sampling</li>
+										</ul>
+										<p>
+										All configuration writes are performed using blocking I2C transactions to ensure deterministic sensor state
+										before data acquisition begins.
+										</p>
+
+										<h3>1.2 Raw Measurement Acquisition</h3>
+										<p>
+										Accelerometer and gyroscope data are read from the MPU6050 using register auto-increment:
+										</p>
+										<ul>
+										<li>Accelerometer: registers <code>0x3B–0x40</code></li>
+										<li>Gyroscope: registers <code>0x43–0x48</code></li>
+										</ul>
+										<p>
+										Each axis measurement is reconstructed from two consecutive 8-bit registers into a signed 16-bit value.
+										The data is then converted into <strong>Q15 fixed-point format</strong>, allowing subsequent signal processing
+										to be performed without floating-point hardware and improving real-time determinism.
+										</p>
+										<p>
+										The raw measurement vectors are represented as:
+										<br />
+										<code>a = [a<sub>x</sub>, a<sub>y</sub>, a<sub>z</sub>], &nbsp; ω = [ω<sub>x</sub>, ω<sub>y</sub>, ω<sub>z</sub>]</code>
+										</p>
+									</section>
+
+									<hr />
+
+									<section id="sensor-fusion">
+										<h2>Sensor Fusion and Orientation Estimation</h2>
+
+										<h3>Accelerometer-Based Tilt Estimation</h3>
+										<p>
+										The instantaneous tilt angle is derived from accelerometer measurements using the Y–Z plane:
+										</p>
+										<p>
+										<code>θ<sub>acc</sub> = atan2(-a<sub>y</sub>, -a<sub>z</sub>)</code>
+										</p>
+										<p>
+										This angle provides an absolute reference to gravity but is subject to high-frequency noise and transient linear acceleration.
+										</p>
+
+										<h3>Gyroscope Integration</h3>
+										<p>
+										Gyroscope data provides angular velocity around the X-axis. Incremental angular displacement is computed as:
+										</p>
+										<p>
+										<code>Δθ<sub>gyro</sub> = ω<sub>x</sub> · Δt</code>
+										</p>
+										<p>
+										where <code>Δt</code> is assumed constant and approximately 1 ms. This integration provides smooth short-term motion tracking
+										but accumulates bias-induced drift over time.
+										</p>
+
+										<h3>Complementary Filter Implementation</h3>
+										<p>
+										To combine the strengths of both sensors, a <strong>first-order complementary filter</strong> is implemented in fixed-point arithmetic:
+										</p>
+										<p>
+										<code>
+											θ<sub>k</sub> = α(θ<sub>k-1</sub> − Δθ<sub>gyro</sub>) + (1 − α)θ<sub>acc</sub>
+										</code>
+										</p>
+										<ul>
+										<li><code>α = 0.999</code></li>
+										<li><code>θ<sub>k</sub></code> is the filtered orientation estimate</li>
+										</ul>
+										<p>
+										The filter effectively acts as a high-pass filter on gyroscope data and a low-pass filter on accelerometer data.
+										To prevent instability and large transients, the filtered angle is saturated to:
+										</p>
+										<p>
+										<code>θ<sub>k</sub> ∈ [−5°, +5°]</code>
+										</p>
+										<p>
+										This filtered output (<code>complementary_angle</code>) represents the system’s internal orientation state.
+										</p>
+									</section>
+
+									<hr />
+
+									<section id="gesture-detection">
+										<h2>Gesture Detection and State Quantization</h2>
+
+										<h3>Continuous-to-Discrete State Mapping</h3>
+										<p>
+										Gesture detection maps the continuous orientation estimate into a discrete state:
+										</p>
+										<table class="gesture-table">
+											<thead>
+												<tr>
+												<th>Condition</th>
+												<th>Gesture</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+												<td>θ &gt; 0</td>
+												<td>FORWARD</td>
+												</tr>
+												<tr>
+												<td>θ &lt; 0</td>
+												<td>BACKWARD</td>
+												</tr>
+												<tr>
+												<td>θ = 0</td>
+												<td>NONE</td>
+												</tr>
+											</tbody>
+											</table>
+										<p>
+										This reduces a continuous sensor signal into a finite command alphabet suitable for network transmission and downstream control.
+										</p>
+
+										<h3>3.2 Edge-Triggered Gesture Emission</h3>
+										<p>
+										To prevent command flooding and oscillatory behavior, gesture transmission is edge-triggered. The system maintains the last
+										transmitted gesture and emits a new command only when a state transition occurs:
+										</p>
+										<p><code>G<sub>k</sub> ≠ G<sub>k-1</sub></code></p>
+										<p>
+										This makes gesture output event-driven, improving robustness under noisy sensor conditions.
+										</p>
+									</section>
+
+									<hr />
+
+									<section id="wireless-communication">
+										<h2>Wireless Communication Subsystem</h2>
+
+										<h3>Network Role and Initialization</h3>
+										<p>
+										The Pico W operates in <strong>station (STA) mode</strong>, connecting to an external access point using WPA2 authentication.
+										The CYW43 networking stack is initialized at startup, and all subsequent communication occurs through a single TCP/IP context.
+										</p>
+										<p>
+										The Pico W does not listen for inbound connections and does not host a server; it functions solely as a client.
+										</p>
+
+										<h3>HTTP-Based Gesture Transport</h3>
+										<p>
+										Gesture events are transmitted to a remote server using synchronous HTTP GET requests. Each request encodes the gesture state
+										in the URL query string:
+										</p>
+										<ul>
+										<li><code>GET /msg?msg=FORWARD</code></li>
+										<li><code>GET /msg?msg=BACKWARD</code></li>
+										</ul>
+										<p>
+										The HTTP client blocks until a response is received or the server closes the connection. Successful transmission is inferred
+										from standard HTTP client return codes. This design prioritizes simplicity and debuggability over latency and bandwidth efficiency.
+										</p>
+									</section>
+
+									<hr />
+
+									<section id="execution-model">
+										<h2>Execution Model and Timing</h2>
+										<p>
+										The system runs in a single-threaded polling loop at approximately 10 Hz. Each loop iteration performs:
+										</p>
+										<ol>
+										<li>Blocking I2C read of IMU data</li>
+										<li>Fixed-point sensor fusion update</li>
+										<li>Gesture classification</li>
+										<li>Conditional HTTP request transmission</li>
+										<li>Fixed delay (<code>sleep_ms(100)</code>)</li>
+										</ol>
+										<p>
+										This sequential model ensures deterministic ordering but introduces latency bounded by the loop period and network transaction duration.
+										</p>
+									</section>
+
+									<hr />
+
+									<section id="constraints-extensions">
+										<h2>Design Constraints and Extensions</h2>
+
+										<h3>Current Constraints</h3>
+										<ul>
+										<li>Fixed <code>Δt</code> assumption for gyroscope integration</li>
+										<li>Polling-based IMU acquisition despite interrupt configuration</li>
+										<li>Binary gesture classification without hysteresis/dead zone</li>
+										<li>Relatively high-latency HTTP transport</li>
+										</ul>
+
+										<h3>Potential Extensions</h3>
+										<ul>
+										<li>Interrupt-driven IMU sampling</li>
+										<li>Adaptive complementary filter gain</li>
+										<li>Hysteresis/dead-zone gesture thresholds</li>
+										<li>Non-blocking or UDP-based communication</li>
+										<li>Extension to multi-axis and compound gestures</li>
+										</ul>
+									</section>
+
+									<hr />
+							</section>														
 						<!-- Results -->
 							<section id="results" class="main">
 								<h2>Results</h2>
