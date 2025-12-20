@@ -44,29 +44,304 @@
 				<!-- Main -->
 					<div id="main">
 
-						<!-- Introduction -->
-							<section id="intro" class="main">
+<!-- Introduction -->
+<section id="intro" class="main">
+	<div class="spotlight">
+	  <div class="content">
+		<header class="major">
+		  <h2>Introduction</h2>
+		</header>
+  
+		<!-- Left-aligned intro text -->
+		<div class="intro-text">
+		  <p>
+			For our ECE 4760 final project, we built a two-wheeled self-balancing robot that can keep itself
+			upright using real-time feedback control. At its core, the robot behaves like an inverted
+			pendulum, so when it starts to tip, it senses the motion and drives its wheels to bring itself back
+			into balance.
+		  </p>
+  
+		  <p>
+			This project was a chance for us to bring together many of the ideas we learned throughout
+			ECE 4760 and apply them to a real, physical system. A lot of our design was inspired by
+			earlier labs and lecture material, especially the old inverted pendulum examples discussed
+			in class and on the course website, as well as Lab 3, where we used PID control to stabilize
+			a one-dimensional helicopter. Those exercises gave us intuition for how feedback control
+			behaves in practice and directly shaped how we approached this project.
+		  </p>
+  
+		  <p>
+			The robot is controlled by a Raspberry Pi Pico W running a PID controller on the RP2040
+			microcontroller. Using data from an onboard IMU, the controller continuously estimates the
+			robot’s tilt angle and how fast that angle is changing. We combine accelerometer and gyroscope
+			measurements using a complementary filter, another technique we learned in class, to get a
+			stable and responsive angle estimate. Based on this information, the controller computes motor
+			commands at a high rate to keep the robot balanced.
+		  </p>
+  
+		  <p>
+			We also wanted the robot to be interactive rather than just balancing in place. To do this, we
+			built a web-based interface hosted directly on the Pico W, which lets us monitor the robot and
+			adjust parameters in real time. On top of that, we added gesture-based control so a user can
+			influence the robot’s motion to move forward or backwards in regards to the tilt of a device.
+		  </p>
+  
+		  <p>
+			Throughout the project, we went through several design iterations. Decisions about robot height,
+			weight distribution, motor placement, and chassis layout all had noticeable effects on control
+			performance, and testing often forced us to revisit earlier choices. The final robot reflects
+			this iterative process and captures what we think ECE 4760 is really about: combining theory,
+			hardware, and software to build something that actually works in the real world.
+		  </p>
+		</div>
+  
+		<ul class="actions">
+		  <li>
+			<a href="https://youtu.be/V_mZqi3zYsA" class="button">Demo Video</a>
+		  </li>
+		</ul>
+	  </div>
+  
+	  <span class="image">
+		<img src="images/cartoon-bot.png" alt="cartoon-bot" />
+	  </span>
+	</div>
+  </section>
+  
+	
+  							<section id="hld" class="main">
 								<div class="spotlight">
-									<div class="content">
-										<header class="major">
-											<h2>Introduction</h2>
-										</header>
-										<p> <!-- BODY TEXT FOR INTRO --></p>
-										<ul class="actions">
-											<li><a href="https://youtu.be/V_mZqi3zYsA" class="button">Demo Video</a></li>
-										</ul>
-									</div>
-									<span class="image"><img src="images/cartoon-bot.png" alt="cartoon-bot" /></span>
-								</div>
-							</section>
+								  <div class="content">
+									<header class="major">
+									  <h2>High Level Design</h2>
+									</header>
+							<p>
+							  Our high-level design process began with creating a full 3-D CAD model in Onshape. As a team,
+							  we wanted to fully think through the mechanical structure of the robot before building anything
+							  physically. Modeling the robot in CAD allowed us to reason about dimensions, material choices,
+							  weight distribution, and how all of the subsystems would fit together. This step helped us catch
+							  several potential issues early, particularly related to motor placement, center of mass, and
+							  wiring, before committing to fabrication.
+							</p>
+						  
+							<p>
+							  Rather than treating the CAD model as a static drawing, we used it as an iterative design tool.
+							  As our understanding of the physics and control requirements improved, we repeatedly revisited
+							  the model and adjusted the design to better align with our goals for stability, symmetry, and
+							  ease of assembly.
+							</p>
 
-						<!-- High Level Design -->
-							<section id="hld" class="main">
-								<h2>High-Level Design</h2>
-								<p> <!-- BODY TEXT FOR HIGH LEVEL DESIGN -->
-									blah blah blah
-								</p>
-							</section>
+							<figure style="text-align: center;">
+								<img src="images/robotassembly.png" alt="robot-assembly" style="max-width: 50%; height: auto;" />
+
+							  <figcaption>Initial full CAD assembly showing overall robot structure.</figcaption>
+							</figure>
+							
+							<ul class="actions">
+								<li>
+								  <a href="https://cad.onshape.com/documents/d4ea7420d6f71259f6b142d5/w/6c7774b5557b06e9d49a10a8/e/8654f4ecfb2beb2b67ef4a9b?renderMode=0&uiState=6945dca5a52915c73c799366"
+									 class="button"
+									 target="_blank">
+									View Full CAD Model (Onshape)
+								  </a>
+								</li>
+							  </ul>
+						  
+			
+							<h3>Motor Torque and Weight Constraints</h3>
+						  
+							<p>
+							  One of the first constraints we considered was whether our motors could realistically support
+							  the weight of the robot while still providing enough torque for balance corrections. We selected
+							  48:1 DC gear motors rated at a maximum output torque of 0.078 N·m and paired them with wheels
+							  of radius 5 cm (0.05 m).
+							</p>
+						  
+							<p>
+							  To understand what this meant in practice, we related motor torque to the force applied at the
+							  wheel–ground interface using the standard torque relationship:
+							</p>
+						  
+							<figure style="text-align: center;">
+							  <p>\( \tau = F r \)</p>
+							  <p>\( F = \frac{\tau}{r} \)</p>
+							  <p>\( F_{\text{motor}} = \frac{0.078}{0.05} = 1.56 \text{ N} \)</p>
+							  <figcaption>Figure 1: Torque-to-force relationship at the wheel.</figcaption>
+							</figure>
+						  
+							<p>
+							  Since our robot uses two motors, the total available horizontal force is approximately:
+							</p>
+						  
+							<figure style="text-align: center;">
+							  <p>\( F_{\text{total}} = 2 \times 1.56 = 3.12 \text{ N} \)</p>
+							  <figcaption>Figure 2: Combined force from both motors.</figcaption>
+							</figure>
+						  
+							<p>
+							  The completed robot had a total mass of approximately 3 lb (1.36 kg), corresponding to a
+							  gravitational force of:
+							</p>
+						  
+							<figure style="text-align: center;">
+							  <p>\( F_g = mg = (1.36)(9.81) \approx 13.3 \text{ N} \)</p>
+							  <figcaption>Figure 3: Gravitational force acting on the robot.</figcaption>
+							</figure>
+						  
+							<p>
+							  At first glance, this might suggest that the motors are insufficient; however, a self-balancing
+							  robot does not require the motors to lift the robot vertically. Instead, the motors generate
+							  horizontal acceleration of the wheels to correct angular deviations of the inverted pendulum
+							  system. Only a fraction of the robot’s weight contributes to the required corrective torque at
+							  small tilt angles.
+							</p>
+						  
+							<p>
+							  This understanding guided our design decisions and gave us confidence that, with appropriate
+							  height selection and PID control, our motors would be capable of stabilizing a 3 lb robot. This
+							  was ultimately confirmed through experimental testing.
+							</p>
+						  
+							<h3>Effect of Robot Height on Stability</h3>
+						  
+							<p>
+							  With motor limitations in mind, we spent significant time discussing how tall the robot should
+							  be. Height plays a major role in the dynamics of a self-balancing robot because it determines
+							  the location of the center of mass.
+							</p>
+						  
+							<p>
+							  If the robot is too tall, the center of mass is higher, which increases the gravitational torque
+							  during tilt and demands larger corrective torques from the motors. If the robot is too short,
+							  the center of mass lies close to the wheel axle, reducing the gravitational restoring torque and
+							  making the system more sensitive to noise, disturbances, and control latency.
+							</p>
+						  
+							<p>
+							  We ultimately chose a moderate height that struck a balance between these two extremes. This
+							  provided a measurable tilt response for the controller while remaining within the torque
+							  capabilities of our motors.
+							</p>
+						  
+							<h3>CAD Iterations and Motor Orientation</h3>
+						  
+							<p>
+							  During CAD development, we explored several motor mounting configurations. One issue we noticed
+							  early was that the motor shafts were slightly offset within the motor housings rather than being
+							  centered.
+							</p>
+						  
+							<p>
+							  One idea we considered was mounting the motors horizontally but in opposite orientations so that
+							  the shaft offsets would cancel each other out. While this approach was theoretically sound, it
+							  added mechanical complexity and made precise alignment more difficult.
+							</p>
+						  
+							<p>
+							  We ultimately decided to mount the motors vertically, which ensured symmetry about the center
+							  of the robot and simplified both the mechanical assembly and mass distribution. This decision
+							  required us to revise our initial CAD design, but it resulted in a cleaner and more predictable
+							  structure.
+							</p>
+						  
+							<h3>Chassis Design and Fabrication</h3>
+						  
+							<p>
+							  For the overall chassis, we chose to use clear acrylic (plexiglass). The final mechanical
+							  assembly consists of three main acrylic plates forming the body of the robot, six acrylic
+							  interconnect pieces used to attach the motors, four M5 threaded rods, twenty-four M5 nuts,
+							  and plastic adhesive for rigid bonding.
+							</p>
+						  
+							<p>
+							  Clear acrylic was chosen primarily because it allowed us to easily see internal components
+							  during assembly and testing. This was especially useful during debugging, as we frequently
+							  needed to inspect wiring, motor drivers, and power connections without disassembling the robot.
+							  Additionally, acrylic can be precisely fabricated using a laser cutter, allowing us to quickly
+							  iterate on our design.
+							</p>
+						  
+							<p>
+							  DXF files exported from our Onshape CAD model were submitted to the Rapid Prototyping Lab for
+							  laser cutting. The design intentionally includes slits and openings in the three main plates
+							  to allow wires from the motor circuit, IMU, and battery pack to pass cleanly between layers.
+							</p>
+						
+						  
+							<figure style="text-align: center;">
+								<img src="images/mainframefirst.png" alt="main-frame" style="max-width: 50%; height: auto;" />
+							  <figcaption>Main frame DXF used to mount motors and wheels.</figcaption>
+							</figure>
+						  
+							<figure style="text-align: center;">
+								<img src="images/mainframetwo.png" alt="support-frame" style="max-width: 50%; height: auto;" />
+
+							  <figcaption>Supporting frame DXF for motor driver circuit, IMU, and battery pack.</figcaption>
+							</figure>
+						  
+							<figure style="text-align: center;">
+								<img src="images/connectorcadfinals.png" alt="connector" style="max-width: 50%; height: auto;" />
+
+							  <figcaption>Connector pieces used to attach motors to the main chassis.</figcaption>
+							</figure>
+						  
+<h3>Mechanical Adjustments for Tuning and Testing</h3>
+
+<p>
+  As we started tuning the PID controller, it became clear very quickly that the robot was going to
+  fall a lot before it worked well. To avoid damaging the chassis or electronics during these early
+  tests, we added protective foam around the edges of the robot. This gave the robot a softer
+  landing when it fell and let us safely experiment with more aggressive PID gains without worrying
+  about breaking anything.
+</p>
+
+<figure style="text-align: center;">
+	<img src="images/foam.png" alt="foam" style="max-width: 75%; height: auto;" />
+
+  <figcaption>Foam To Protect Robot on Falls.</figcaption>
+</figure>
+
+<p>
+  We also spent time experimenting with where to place the heavier components on the robot.
+  The battery pack, which is one of the heaviest parts, was mounted on the top level, while the IMU
+  and motor driver circuit were placed on the middle level. Putting more weight higher up increased
+  the height of the center of mass, which made the robot’s tilting motion more noticeable and easier
+  for the controller to react to during balancing.
+</p>
+<figure style="text-align: center;">
+	<img src="images/adjustments.png" alt="adjustments" style="max-width: 75%; height: auto;" />
+
+  <figcaption>Placement of Hardware Components.</figcaption>
+</figure>
+<p>
+  In practice, mounting everything perfectly centered was harder than we expected. Small offsets
+  from wiring, connectors, and mounting holes caused slight imbalances that showed up during
+  testing. Even small asymmetries in weight distribution had a noticeable effect on how the robot
+  behaved.
+</p>
+
+<p>
+  To correct this, we made a series of small mechanical adjustments by adding extra M5 nuts and
+  threaded rods to the top level of the robot. Although this slightly increased the overall weight,
+  our main goal was to counteract existing weight offsets rather than add mass unnecessarily. By
+  placing these additions strategically, we were able to better center the robot’s mass and improve
+  balance consistency.
+</p>
+<figure style="text-align: center;">
+	<img src="images/balancingcomponents.png" alt="balancingcomponents" style="max-width: 75%; height: auto;" />
+
+  <figcaption>Added Weight for Balance.</figcaption>
+</figure>
+<p>
+  These adjustments reinforced how closely the mechanical design and control performance are
+  connected. Many of the improvements we saw during tuning came not just from changing PID gains,
+  but from making small, deliberate changes to the physical structure of the robot.
+</p>
+
+						  
+						  </section>						  
+						  
+						  
 
 						<!-- Hardware Design -->
 							<section id="hwdesign" class="main">
