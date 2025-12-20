@@ -45,7 +45,8 @@
 					<li><a href="#gesturecontrolsw">Gesture Software</a></li>
 					<li><a href="#results">Results</a></li>
 					<li><a href="#conclusions">Conclusions</a></li>
-					<li><a href="#appendix">Appendix</a></li>
+					<li><a href="#appendixa">Appendix A</a></li>
+					<li><a href="#appendixb">Appendix B</a></li>
 				</ul>
 			</nav>
 
@@ -888,34 +889,135 @@
 				</section>
 
 				<!-- Conclusions -->
-				<section id="conclusions" class="main">
-					<h2>Conclusion</h2>
-					<p>
-						This project brought together nearly every major concept from ECE 4760 into a single, tightly integrated system. By designing and implementing a two-wheeled self-balancing robot,
-						we were forced to confront the realities of embedded systems design: noisy sensors, real-time constraints, imperfect hardware, and the constant interplay between software, electronics, and mechanics.
-						What began as an abstract inverted pendulum model quickly became a physical system whose behavior exposed the strengths and limitations of our assumptions, control strategies, and design choices. At a technical level,
-						the project demonstrated the full embedded control pipeline, from raw sensor acquisition to real-time actuation.
-						We implemented a complementary filter to fuse accelerometer and gyroscope data, designed and tuned a high-frequency PID controller running in an interrupt context, and coordinated networking, debugging, and control
-						tasks across both cores of the RP2040.
-					</p>
+				<<section id="conclusion" class="main">
+  <header class="major">
+    <h2>Conclusion</h2>
+  </header>
 
-					<p>
-						Beyond the technical implementation, this project fundamentally shaped how we think about engineering as a discipline. ECE 4760 emphasized that embedded systems do not exist in isolation; they sit at the intersection of electrical engineering, computer science, mechanical design, and physics. Decisions about chassis geometry, weight distribution, and motor placement
-						were just as critical to system stability as PID gains or filter coefficients. The iterative process of testing, failing, revising, and retesting reinforced the idea that engineering progress often comes from carefully observing system behavior and refining both the model and the implementation in response.
-					</p>
+  <p>
+    This project successfully met our primary goal of designing and implementing a
+    two-wheeled self-balancing robot capable of maintaining upright stability using
+    real-time feedback control. The final system demonstrated stable balancing behavior
+    under nominal conditions, supported forward and backward motion through gesture-based
+    input, and allowed real-time parameter tuning through an onboard web interface.
+    Overall, the robot’s behavior aligned closely with our expectations based on the
+    inverted pendulum model and prior laboratory experience, particularly in terms of
+    responsiveness, controllability, and sensitivity to mechanical design choices.
+  </p>
 
-					<p>
-						The addition of gesture-based control and a web interface further highlighted how embedded systems can serve as a bridge between the physical and digital worlds. By allowing a human user to influence a dynamically balancing robot through intuitive motion input, the project moved beyond pure stabilization and into human–machine interaction. Gesture-controlled,
-						self-balancing systems have clear real-world applications, ranging from personal mobility devices and assistive robotics to warehouse automation, camera stabilization platforms, and autonomous delivery robots. The same principles explored here; sensor fusion, feedback control, and responsive user interfaces, are foundational to modern robotics and cyber-physical systems.
+  <p>
+    That said, the project also revealed several areas where our expectations required
+    adjustment. In practice, the robot’s performance was far more sensitive to mechanical
+    asymmetries, sensor noise, and actuator nonlinearities than idealized models suggested.
+    Differences in motor response between forward and backward rotation, small offsets in
+    mass distribution, and latency introduced by network interactions all had measurable
+    effects on stability. While these challenges were ultimately mitigated through
+    secondary PID compensation, mechanical rebalancing, and gesture command timeouts, a
+    future iteration of this project would benefit from more precise mechanical
+    fabrication, matched motors, and an explicit treatment of actuator dead zones during
+    the initial design phase rather than retrofitting solutions later.
+  </p>
 
-						The course challenged us to integrate theory with practice, to embrace iterative design, and to use engineering as a tool for understanding and interacting with complex systems across disciplines. Building a
-						self-balancing robot was not just an exercise in control or programming; it was a demonstration of how embedded systems enable us to model, sense, and actively shape the physical world.
-					</p>
+  <p>
+    From a software perspective, our use of a complementary filter and high-frequency,
+    interrupt-driven PID control met expectations and proved robust under real-world
+    conditions. However, the fixed-step assumption used for gyroscope integration and the
+    polling-based IMU acquisition represent simplifications that could be improved. In a
+    future design, we would likely implement interrupt-driven sensor sampling and a more
+    adaptive sensor fusion approach to further improve accuracy and reduce latency.
+    Additionally, replacing blocking HTTP requests with a non-blocking or lower-latency
+    communication protocol could improve responsiveness for gesture-based control.
+  </p>
+
+  <h3>Conformance to Standards and Best Practices</h3>
+
+  <p>
+    Our design conforms to standard embedded systems and electrical engineering practices
+    emphasized in ECE 4760. All circuitry operated within specified voltage and current
+    limits for the Raspberry Pi Pico W and peripheral components. The MPU6050 IMU was
+    interfaced using standard I<sup>2</sup>C communication at 3.3&nbsp;V logic levels, and
+    proper grounding practices were followed to ensure signal integrity. Motor driver
+    isolation using optocouplers reduced noise coupling between the high-current motor
+    domain and sensitive control electronics, aligning with best practices for mixed-signal
+    embedded systems.
+  </p>
+
+  <p>
+    From a software standpoint, we adhered to real-time design principles by using hardware
+    interrupts for time-critical PID execution and separating networking and control tasks
+    across the RP2040’s dual cores. This architectural separation helped ensure deterministic
+    control timing despite the presence of networking and user-interface code.
+  </p>
+
+  <h3>Intellectual Property Considerations</h3>
+
+  <p>
+    This project made use of prior work and publicly available resources in a transparent
+    and ethical manner. Portions of the networking infrastructure were adapted from example
+    code and prior projects developed by Professor Bruce Land and course staff for ECE 4760
+    and related platforms. These materials are intended for educational use and are
+    effectively in the public domain for course projects. Conceptual inspiration was also
+    drawn from inverted pendulum examples discussed in lectures, course notes, and earlier
+    laboratory exercises.
+  </p>
+
+  <p>
+    No proprietary or closed-source code was used, and no non-disclosure agreements were
+    required to obtain hardware components or documentation. All hardware components,
+    including the Raspberry Pi Pico W, MPU6050 IMU, and motor drivers, are commercially
+    available with publicly documented interfaces. We did not reverse-engineer any
+    protected designs, nor did we encounter patent or trademark restrictions relevant to
+    this project.
+  </p>
+
+  <p>
+    While self-balancing robots and gesture-based control systems are well-established
+    concepts, this project does not pursue novel mechanisms or algorithms that would
+    clearly warrant patent protection. Instead, its value lies in the integration and
+    application of known techniques in an educational context. As such, no patent
+    opportunities were identified or pursued.
+  </p>
+
+  <h3>Broader Perspective and Real-World Applications</h3>
+
+  <p>
+    Beyond the technical implementation, this project encapsulated the broader educational
+    goals of ECE 4760. The course emphasized that microcontrollers are not merely programming
+    targets, but central components in larger cyber-physical systems that span disciplines.
+    Through this project, we gained a deeper appreciation for how electrical engineering
+    interacts with mechanics, control theory, human–computer interaction, and networking.
+  </p>
+
+  <p>
+    Gesture-controlled self-balancing systems have clear real-world relevance, with
+    applications in personal mobility devices, assistive robotics, autonomous platforms,
+    camera stabilization systems, and human–machine interfaces. The principles explored
+    here—sensor fusion, real-time control, and intuitive user input—are foundational to
+    modern robotics and embedded systems.
+  </p>
+
+  <p>
+    In conclusion, this project represents a culmination of the technical, conceptual, and
+    practical lessons of ECE 4760. It challenged us to move beyond theory, confront
+    real-world imperfections, and iteratively refine a system until it worked reliably.
+    The experience has significantly shaped how we approach embedded systems design and
+    strengthened our perspective on engineering as an interdisciplinary and deeply
+    integrative discipline.
+  </p>
+</section>
+
+
+				<!-- Results -->
+				<section id="appendixa" class="main">
+					<h2>Appendix A: Permissions</h2>
+					<p>The group approves this report for inclusion on the course website.</p>
+					<p>The group approves the video for inclusion on the course youtube channel.</p>
+
 				</section>
 
 				<!-- Appendix -->
-				<section id="appendix" class="main">
-					<h2>Appendix</h2>
+				<section id="appendixb" class="main">
+					<h2>Appendix B Code</h2>
 
 					<details class="code-dropdown">
 						<summary class="code-summary">
