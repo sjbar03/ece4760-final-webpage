@@ -884,7 +884,32 @@
 				<!-- Results -->
 				<section id="results" class="main">
 					<h2>Results</h2>
-					<p></p>
+					<p>
+						Our efforts culminated in a very consistent machine capable of keeping itself upright for more than 15 minutes. We are confident that our robot would remain stable for the duration of its battery life if given the chance.
+						Our wireless tuning and control interface is robust, and made the somewhat monotonous process of tuning a PID controlled robot much easier. This embedded server implementation enabled us to meet one of our original goals - 
+						making the robot fully untethered. The final product is capable of moving freely around its space (to the extend that its single axis of movement allows). Our gesture control mechanism is also satisfying, producing
+						the "segway"-like motion we set out to implement in our original project proposal. The robot was capable of recovering from slight pushes 
+						relatively quickly, although it's resilience did not quite live up to our goals for this short project. 
+					</p>
+
+					<p>
+						There are several areas that we planned on improving the robot if we had the time. We list them here for completeness, and for the reference of others.
+
+						<ul>
+							<li> 
+								Turning: By introducing two additional PWM channels to our complete circuit, we could have had split control of the motors, allowing us to slow one side down to turn in that direction. We already observed this behavior
+								caused by the motors we used not responding identically to the output signal. </li>
+							<li>
+								Better Motors: The motors we used were capable of holding the robot up, but they lacked torque in situations where it was crucial (such as being shoved). By the time we realized this, there was not enough time left to 
+								order newer motors. With some more torquey motors, we believe the robot would have been more stable. 
+							</li>
+							<li>
+								Better Networking: Our onboard server has the tendency (in our experience) to occasionally crash or become unresponsive, requiring a power cycle to come back online. We propose that this could be resolved with a failsafe in software
+								that checks server status and tries to restart automatically. We also note that these networking issues may have been caused by the very "noisy" environment in which the robot was tested, and may not be a problem in
+								more normal locations.
+							</li>
+						</ul>
+					</p>
 				</section>
 
 				<!-- Conclusions -->
@@ -916,6 +941,35 @@
 				<!-- Appendix -->
 				<section id="appendix" class="main">
 					<h2>Appendix</h2>
+
+					<h3>Permissions </h3>
+
+					<p>The group approves this report for inclusion on the course website.</p>
+					<p>The group approves the video for inclusion on the course youtube channel.</p>
+
+					<h3>Contributions </h3>
+					<ul>
+						<li>Stephen Barlett: Implemented most of the onboard software, including the PID controller and web interface. Also implemented the full onboard circuit on a breadboard, and then the final product on a solderboard. Finally, tuned the robot to its final state. </li>
+						<li>Jamayne Gyimah-Danquah: Worked on the hardware design and the code for the Gesture Control feature of the project </li>
+						<li>Md Shad: Focused on the mechanical side of the project and the overall physical design of the robot. He designed the robot’s CAD model and used it to think through the chassis layout, motor placement, and weight distribution before anything was built. Md also handled the fabrication process by preparing the parts for laser cutting and assembling the main frame and body of the robot from the acrylic components. Along the way, he worked through the physics behind the self-balancing system, including center-of-mass considerations, motor torque limits, and inverted pendulum behavior. This helped shape the high-level design and ensured the final mechanical structure worked well with the control system.</li>
+					</ul>
+
+					<h3>References</h3>
+					<ul>
+						<li><a href="https://www.elecrow.com/download/datasheet-l9110.pdf?srsltid=AfmBOopdcSaGghM8zC7y5DjugZEqe_6r532nZW8oLeD3WBe6coQXfo2W">L9110 H-Bridge</a></li>
+						<li><a href="https://www.onsemi.com/download/data-sheet/pdf/4n35-d.pdf">4N35 Optocoupler</a></li>
+						<li><a href="https://people.ece.cornell.edu/land/courses/ece4760/pi_pico/wifi_ap_web_server/index_access_pt_rp2350.html">Bruce Land's Pico Access Point</a></li>
+					</ul>
+
+					<h3> AI Acknowlegement </h3>
+					<p>Throughout the project, we used AI tools as a support resource for analysis, debugging, and documentation rather than as a replacement for our own design work. AI assistance was frequently used to help reason through bugs in our code, interpret compiler and runtime errors, and understand unexpected behavior in complex sections involving interrupts, networking, and real-time control, which significantly sped up the debugging process. We also relied on AI when working with the Pico W’s Wi Fi subsystem, using it to better understand how access point configuration choices such as channel selection, IP addressing, and network setup affected connection stability and reliability. This helped us experiment with and refine our network configuration to achieve more consistent connectivity between devices. In addition, AI was used to help format and organize the project website, including adjusting image placement, improving layout consistency, and refining captions and text for readability. All core system design, control logic, hardware integration, and final implementation decisions were ultimately developed, tested, and validated by our team.</p>
+
+					<h3> Vendors </h3>
+					<ul>
+						<li> Amazon: Plexiglass, structural metal rods. </li>
+						<li> Lab supplies: Motors, H-bridges, Optocouplers, solderboard, wheels.</li>
+					</ul>
+					<h3> Code </h3>
 
 					<details class="code-dropdown">
 						<summary class="code-summary">
