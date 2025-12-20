@@ -959,6 +959,77 @@ gesture_t detect_gesture(float ax, float ay, float az_ignored) {
 						<summary class="code-summary">
 							<span class="code-left">
 								<span class="code-chevron" aria-hidden="true"></span>
+								<span class="code-title">imu_filter.c</span>
+							</span>
+							<span class="code-hint"></span>
+						</summary>
+
+						<pre class="code-block"><code class="language-c">#include &lt;math.h&gt;
+// imu_filter.c
+#include &lt;math.h&gt;
+#include &quot;imu_filter.h&quot;
+#include &quot;mpu6050.h&quot;
+
+// Raw IMU measurements (15.16 fixed-point, accel in g, gyro in deg/s)
+fix15 acceleration[3], gyro[3];
+
+// Filter state
+fix15 accel_angle, gyro_angle_delta;
+fix15 complementary_angle;
+fix15 filter_acc_z, filter_acc_y;
+
+// These are defined in some common file in your project, e.g. globals.c
+// fix15 oneeightyoverpi = float2fix15(180.0f / 3.14159265358979f);
+// fix15 zeropt001       = float2fix15(0.001f);
+// fix15 zeropt999       = float2fix15(0.999f);
+
+void imu_filter_init(void)
+{
+    // Make sure MPU is already reset/configured before calling this
+    mpu6050_read_raw(acceleration, gyro);
+
+    filter_acc_y        = acceleration[1];
+    filter_acc_z        = acceleration[2];
+    accel_angle         = 0;
+    gyro_angle_delta    = 0;
+    complementary_angle = 0;
+}
+
+static void complementary_filter(void)
+{
+    // Low-pass filter Y and Z acceleration (simple IIR with &gt;&gt;4 ~ 1/16)
+    filter_acc_y = filter_acc_y + ((acceleration[1] - filter_acc_y) &gt;&gt; 4);
+    filter_acc_z = filter_acc_z + ((acceleration[2] - filter_acc_z) &gt;&gt; 4);
+
+    // Accelerometer angle (atan2 in radians -&gt; degrees)
+    accel_angle = multfix15(
+        float2fix15(atan2(-filter_acc_y, filter_acc_z)),
+        oneeightyoverpi
+    );
+
+    // Gyro angle increment (gyro[0] in deg/s * dt ≈ 0.001 s)
+    gyro_angle_delta = multfix15(gyro[0], zeropt001);
+
+    // Complementary filter
+    complementary_angle =
+        multfix15(complementary_angle - gyro_angle_delta, zeropt999) +
+        multfix15(accel_angle, zeropt001);
+}
+
+void imu_update_and_filter(void)
+{
+    
+    mpu6050_read_raw(acceleration, gyro);
+
+    complementary_filter();
+}
+</code></pre>
+					</details>
+
+					<details class="code-dropdown">
+						<summary class="code-summary">
+							<span class="code-left">
+								<span class="code-chevron" aria-hidden="true"></span>
 								<span class="code-title">pid_controller.c</span>
 							</span>
 							<span class="code-hint"></span>
@@ -2171,24 +2242,9 @@ int main() {
 
 }
 </code></pre>
-					</details>
+			</details>
 				</section>
 			</div>
-
-			<!-- Footer -->
-			<footer id="footer">
-				<section>
-					<h2>Aliquam sed mauris</h2>
-					<p>
-						Sed lorem ipsum dolor sit amet et nullam consequat feugiat consequat magna adipiscing tempus etiam dolore veroeros. eget dapibus mauris. Cras aliquet, nisl ut viverra sollicitudin, ligula erat egestas velit, vitae tincidunt odio.
-					</p>
-					<ul class="actions">
-						<li><a href="generic.html" class="button">Learn More</a></li>
-					</ul>
-				</section>
-
-				<p class="copyright">&copy; Untitled. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
-			</footer>
 		</div>
 
 		<!-- Scripts -->
